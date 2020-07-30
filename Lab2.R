@@ -7,6 +7,8 @@ library(ggplot2)
 # Librería para la moda
 library(modeest)
 
+#library(quantmod)
+
 
 cat(" =============================== Laboratorio N°2 Análisis de Datos =============================== \n\n")
 cat(" Desarrolladores: Patricia Melo - Gustavo Hurtado\n\n")
@@ -30,17 +32,108 @@ col_names <- c("age","sex","on thyroxine","query on thyroxine","on antithyroid m
 # Se le asignan nombres apropiados a las columnas de los datos  
 sep_data <- separate(data, col = "V1", into = col_names, sep = ",")
 
+#======================================================== Funciones =========================================================#
 
-#============================================== Limpieza de los datos =================================================#
+
+# Se genera una función que calcula la media, mediana, moda, desviación standard, mínimo y máximo 
+# de una columna perteneciente pertenenciente a un data frame.
+# Recibe una columna de un data frame y el nombre de la columna.
+# Retorna un data frame con la media, mediana, moda, mínimo, máximo y desviación standard de la columna.
+get_col_measures <- function(col, name){
+  measurements <- data.frame(
+    mean = round(mean(col, na.rm = TRUE),3),
+    median = round(median(col, na.rm = TRUE),3),
+    mode = round(mfv1(col, na_rm = TRUE),3),
+    min = round(min(col, na.rm = TRUE),3),
+    max = round(max(col, na.rm = TRUE),3),
+    sd = round(sd(col, na.rm = TRUE),3)
+  )
+  rownames(measurements) <- c(name)
+  
+  return(measurements)
+  
+}
+
+
+# Se genera una función que calcula la media, mediana, moda y desviación standard de todas las columnas de un
+# data frame con valores numéricos contínuos
+# Recibeun data frame y el nombre de la columna.
+# Retorna un data frame con la media, mediana, moda y desviación standard de cada columna del data frame.
+
+get_all_measures <- function(data_frame){
+  total_measurements <- rbind(get_col_measures(data_frame$age,"age"), get_col_measures(data_frame$TSH, "TSH"))
+  total_measurements <- rbind(total_measurements, get_col_measures(data_frame$T3, "T3"))
+  total_measurements <- rbind(total_measurements, get_col_measures(data_frame$TT4, "TT4"))
+  total_measurements <- rbind(total_measurements, get_col_measures(data_frame$T4U, "T4U"))
+  total_measurements <- rbind(total_measurements, get_col_measures(data_frame$FTI, "FTI"))
+  return(total_measurements)
+}
+
+
+#======================================= Reconocimiento de datos ==========================================
+
+# Se calcula datos de medida central para cada variable numérica, antes de la limpieza
+# Para esto no se consideran los datos nulos y se crea un data frame para luego utilizar una función.
+
+# Edad
+age <- sep_data$age
+age[age == "?"] <- NA
+age <- as.numeric(as.character(age))
+#age <- age[complete.cases(age)]
+
+# TSH
+tsh <- sep_data$TSH
+tsh[tsh == "?"] <- NA
+#tsh <- tsh[complete.cases(tsh)]
+tsh <- as.numeric(as.character(tsh))
+
+# T3
+t3 <- sep_data$T3
+t3[t3 =="?"] <- NA
+#t3 <- t3[complete.cases(t3)]
+t3 <- as.numeric(as.character(t3))
+
+# TT4
+tt4 <- sep_data$TT4
+tt4[tt4 =="?"] <- NA
+#tt4 <- tt4[complete.cases(tt4)]
+tt4 <- as.numeric((as.character(tt4)))
+
+# T4U
+t4u <- sep_data$T4U
+t4u[t4u =="?"] <- NA
+#t4u <- t4u[complete.cases(t4u)]
+t4u <- as.numeric(as.character(t4u))
+
+# FTI
+fti <- sep_data$FTI
+fti[fti == "?"]<-NA
+#fti <- fti[complete.cases(fti)]
+fti <- as.numeric(as.character(fti))
+
+
+# Se crea el data frame.
+datos <- data.frame(
+  "age" = age,
+  "TSH" = tsh, 
+  "T3" = t3,
+  "TT4" = tt4,
+  "T4U" = t4u, 
+  "FTI" = fti
+)
+
+# Se calcula la media, mediana, moda, mínimo, máximo y desviación estándar
+get_all_measures(datos)
+
+
+
+#============================================ Limpieza de los datos ==============================================#
 
 # Se quitaron los números al final de la clase (|.232), ya que no se utilizan.
 sep_data$class <- vapply(strsplit(sep_data$class,"\\."), `[`, 1, FUN.VALUE=character(1))
 
 # Se obtiene el número total de individuos que se enceuntran en el estudio.
 total_individuos <- nrow(sep_data)
-
-# Dado que existe una edad 455, se optó por eliminar esa fila para que no altere los demás datos.
-sep_data <- sep_data[-c(1365),]
 
 # Dado que TGB medido es siempre falso, se quitará la columna TBG measured y TBG
 sep_data$TBG <- NULL
@@ -49,69 +142,9 @@ sep_data$`TBG measured` <- NULL
 # Esta variable auxiliar será utilizada para hacer cálculos más adelante
 sep_data_aux <- sep_data
 
-# A continuación se obtiene la cantidad de filas restantes que no contienen "?" por cada variable númerica encontrada.
-# TSH
-tsh <- sep_data$TSH
-tsh[tsh == "?"] <- NA
-tsh <- tsh[complete.cases(tsh)]
-filas_tsh <- NROW(tsh)
 
-# T3
-t3 <- sep_data$T3
-t3[t3 =="?"] <- NA
-t3 <- t3[complete.cases(t3)]
-filas_t3 <- NROW(t3)
+#------------------------ Eliminando valores atipicos --------------------------------
 
-# TT4
-tt4 <- sep_data$TT4
-tt4[tt4 =="?"] <- NA
-tt4 <- tt4[complete.cases(tt4)]
-filas_tt4 <- NROW(tt4)
+# Dado que existe una edad 455, se optó por eliminar esa fila para que no altere los demás datos.
+sep_data <- sep_data[-c(1365),]
 
-# T4U
-t4u <- sep_data$T4U
-t4u[t4u =="?"] <- NA
-t4u <- t4u[complete.cases(t4u)]
-filas_t4u <- NROW(t4u)
-
-# FTI
-fti <- sep_data$FTI
-fti[fti == "?"]<-NA
-fti <- fti[complete.cases(fti)]
-filas_fti <- NROW(fti)
-
-# Para poder reemplazar los datos faltantes por la media o mediana es necesario que dichos datos no superen 
-# el 5% del total de la población, siendo este 2800 (o 2799 ya que se eliminó uno antes).
-# 140 corresponde al 5% de 2800.
-
-# Comparando los resultados de las filas recién obtenidas, se ve que ninguna variable cumple con dicho requisito, 
-# por eso se decide eliminar las filas del que más perdida tiene, y así volver a calcular.
-
-# Eliminando "?" de T3
-sep_data_aux$T3[sep_data_aux$T3 == "?"] <- NA
-sep_data_aux <- sep_data_aux[complete.cases(sep_data_aux),]
-
-
-# Se eliminan todas las filas que contengan un "?". Pasando de 2799 casos (2800 menos la edad de 455) a 1946 casos.
-# Debido a la gran pérdida de datos que se tiene, se buscó eliminar todos los "?" de la columna con más de estos
-# Datos vacíos, para luego rellenar los de las otras columnas con la media de su propia columna, pero al superar
-# el 5% de datos que pueden ser rellenados, se descartó esa opción.
-#sep_data[sep_data == "?"] <- NA
-#sep_data <- sep_data[complete.cases(sep_data),]
-
-
-# Se transforman todas las variables contínuas a numéricas.
-#sep_data$age <- as.numeric(as.character(sep_data$age))
-#sep_data$T3 <- as.numeric(as.character(sep_data$T3))
-#sep_data$T4U <- as.numeric(as.character(sep_data$T4U))
-#sep_data$TSH <- as.numeric(as.character(sep_data$TSH))
-#sep_data$FTI <- as.numeric(as.character(sep_data$FTI))
-#sep_data$TT4 <- as.numeric(as.character(sep_data$TT4))
-
-#======================================================== Funciones =========================================================#
-
-
-ejemplo <- c(1, "?", 3, 4, 5, 9, "?", 7, "?")
-a <- c(99, 88, 77, "?", 55, 44, "?", 22, 11)
-
-algo<-data.frame(cbind(ejemplo, a))
