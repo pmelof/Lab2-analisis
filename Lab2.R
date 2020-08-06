@@ -202,23 +202,55 @@ male_quant <- NROW(subset(sex, sex == "M"))
 get_all_frequency(data_cualitative)
 
 
-#============================================ Limpieza de los datos ==============================================#
+#====================== Detección y tratamiento de datos faltantes y atípicos =======================#
 
 # Se quitaron los números al final de la clase (|.232), ya que no se utilizan.
 sep_data$class <- vapply(strsplit(sep_data$class,"\\."), `[`, 1, FUN.VALUE=character(1))
 
 # Se obtiene el número total de individuos que se enceuntran en el estudio.
-total_individuos <- nrow(sep_data)
-
-# Dado que TGB medido es siempre falso, se quitará la columna TBG measured y TBG
-sep_data$TBG <- NULL
-sep_data$`TBG measured` <- NULL
+total_individuos <- nrow(sep_data)    # 2800
 
 # Esta variable auxiliar será utilizada para hacer cálculos más adelante
 sep_data_aux <- sep_data
 
 
+# -------------------------------------------------------------------
+#                    Disminución de variables 
+#
+# Se eliminan variables que no entregan un gran aporte al estudio
 
+# Variables numéricas:
+# Dado que TGB medido es siempre falso, se quitará la columna TBG
+sep_data$TBG <- NULL
+
+# Variables categóricas:
+# Como se eliminó TBG, ya no es necesario TBG measured.
+sep_data$`TBG measured` <- NULL
+
+# Además, al tener valores en el resto de las variables numéricas hace que todas las variables que tengan
+# "measured" no entreguen mayor información, ya que si hay valor entonces el individuo se realizó el examen.
+sep_data$`TSH measured` <- NULL
+sep_data$`T3 measured` <- NULL
+sep_data$`TT4 measured` <- NULL
+sep_data$`T4U measured` <- NULL
+sep_data$`FTI measured` <- NULL
+
+# Con el reconocimiento de datos previamente hecho, se vió que la variable hypopituitary no tenía una
+# gran variación en los resultados, donde había 1 verdadero y 2799 falsos, por este motivo se elimina.
+sep_data$hypopituitary <- NULL
+
+# Otras variables discretas que no entregan mayor información al estudio con respecto a los calculos son
+# referral source y class, eliminando así a ambas.
+sep_data$`referral source`<-NULL
+sep_data$class <- NULL
+
+
+# -------------------------------------------------------------------
+#             Detección  y tratamiento de datos faltantes 
+#
+# Se encuentran los datos nulos y se ve si es posibles intercambiarlos por la mediana o moda
+
+# Variables continuas:
 # A continuación se obtiene la cantidad de filas restantes que no contienen "?" (nulo)
 # por cada variable númerica encontrada.
 
@@ -241,8 +273,8 @@ rows_t4u <- NROW(t4u)             # = 2503
 fti <- fti[complete.cases(fti)]
 rows_fti <- NROW(fti)             # = 2505
 
-# Para poder reemplazar los datos faltantes por la media, mediana o moda es necesario que dichos datos no superen 
-# el 5% del total de la población, siendo este 2800.
+# Para poder reemplazar los datos faltantes por la media, mediana o moda es necesario que dichos datos sean 
+# cercanos al 5% del total de la población.
 # 140 corresponde al 5% de 2800.
 
 # Comparando los resultados de las filas recién obtenidas, se ve que ninguna variable cumple con dicho requisito, 
@@ -253,7 +285,7 @@ sep_data$T3[sep_data$T3 == "?"] <- NA
 sep_data <- sep_data[complete.cases(sep_data),]
 
 # Nuevo total de casos: 2215
-# Probando con el resto de variables para ver si es cercano al 5% nuevo (110.75) los datos NULL.
+# Probando con el resto de variables para ver si es cercano al 5% nuevo (110.75).
 
 # Edad
 age <- sep_data$age
@@ -315,25 +347,19 @@ sep_data$FTI <- as.numeric(as.character(sep_data$FTI))
 sep_data$FTI[is.na(sep_data$FTI)] <- median(sep_data$FTI, na.rm = TRUE)
 
 
+# Variables discretas:
+# La única variable que contiene datos nulos es sexo, por lo que se procede a rellenar con la moda, 
+# la cual es femenino.
+sep_data$sex[sep_data$sex == "?"] <- "F"
 
-# ------------------------- " Limpieza " ------------------------
-sep_data[sep_data == "?"] <- NA
-sep_data <- sep_data[complete.cases(sep_data),]
 
+# -------------------------------------------------------------------
+#             Detección y tratamiento de datos atípicos 
+#
+# Los datos que esten fuera de un rango determinado serán considerados como atípicos y se procederan a 
+# intercambiar por la mediana
 
-# Se transforman todas las variables contínuas a numéricas.
-sep_data$age <- as.numeric(as.character(sep_data$age))
-sep_data$T3 <- as.numeric(as.character(sep_data$T3))
-sep_data$T4U <- as.numeric(as.character(sep_data$T4U))
-sep_data$TSH <- as.numeric(as.character(sep_data$TSH))
-sep_data$FTI <- as.numeric(as.character(sep_data$FTI))
-sep_data$TT4 <- as.numeric(as.character(sep_data$TT4))
-
-sep_data$`referral source`<-NULL
-sep_data$class <- NULL
-
-#--------------------
-
+# Variables continuas:
 sep_data$age[sep_data$age > 110] <- median(sep_data$age)
 sep_data$TSH[sep_data$TSH > 10] <- median(sep_data$TSH)
 sep_data$T3[sep_data$T3 > 5] <- median(sep_data$T3)
@@ -342,23 +368,18 @@ sep_data$FTI[sep_data$FTI > 200] <- median(sep_data$FTI)
 
 
 
-#----------------------------------------------------------------
+#===================================== Reducción de dimensionalidad ====================================#
 
+# Pese a ya haber reducido las variables, se utilizará el método de componentes principales
+# para ver si se puede reducir aún más.
 
-
-
-#------------------------ Eliminando valores atipicos --------------------------------
-
-# Dado que existe una edad 455, se optó por eliminar esa fila para que no altere los demás datos.
-#sep_data <- sep_data[-c(1365),]
-
-
-#===================================== Análisis componentes principales ====================================#
+# -------------------------------------------------------------------
+#                    Componentes principales 
+#
 
 # Primero se deben transformar las variables cualitativas a cuantitativas.
 # False = 0     Masculino = 0
 # True = 1      Femenino = 1
-
 
 sep_data[sep_data == "M"] <- 0
 sep_data[sep_data == "F"] <- 1
@@ -366,6 +387,7 @@ sep_data[sep_data == "f"] <- 0
 sep_data[sep_data == "t"] <- 1
 
 # Transformar todos los datos a numéricos
+# Variables categóricas:
 sep_data$sex <- as.numeric(as.character(sep_data$sex))
 sep_data$`on thyroxine` <- as.numeric(as.character(sep_data$`on thyroxine`))
 sep_data$`query on thyroxine` <- as.numeric(as.character(sep_data$`query on thyroxine`))
@@ -376,27 +398,26 @@ sep_data$`thyroid surgery` <- as.numeric(as.character(sep_data$`thyroid surgery`
 sep_data$`I131 treatment` <- as.numeric(as.character(sep_data$`I131 treatment`))
 sep_data$`query hypothyroid` <- as.numeric(as.character(sep_data$`query hypothyroid`))
 sep_data$`query hyperthyroid` <- as.numeric(as.character(sep_data$`query hyperthyroid`))
-sep_data$lithium <- NULL#as.numeric(as.character(sep_data$lithium))
+sep_data$lithium <- as.numeric(as.character(sep_data$lithium))
 sep_data$goitre <- as.numeric(as.character(sep_data$goitre))
 sep_data$tumor <- as.numeric(as.character(sep_data$tumor))
-sep_data$hypopituitary <- NULL#as.numeric(as.character(sep_data$hypopituitary))
 sep_data$psych <- as.numeric(as.character(sep_data$psych))
-sep_data$`TSH measured` <- NULL#as.numeric(as.character(sep_data$`TSH measured`))
-sep_data$`T3 measured` <- NULL#as.numeric(as.character(sep_data$`T3 measured`))
-sep_data$`TT4 measured` <- NULL#as.numeric(as.character(sep_data$`TT4 measured`))
-sep_data$`T4U measured` <- NULL#as.numeric(as.character(sep_data$`T4U measured`))
-sep_data$`FTI measured` <- NULL#as.numeric(as.character(sep_data$`FTI measured`))
+
+# Variables continuas:
+sep_data$T3 <- as.numeric(as.character(sep_data$T3))
 
 
 # Obtener componentes principales
 pca_datos <- prcomp(sep_data, scale = TRUE)
 #
-pca2 <- PCA(sep_data, scale.unit = TRUE, ncp = 19, graph = FALSE)
+pca2 <- PCA(sep_data, scale.unit = TRUE, ncp = 20, graph = FALSE)
 
-
-
-  # Cantidad de componentes principales distintas = 21
+# Cantidad de componentes principales distintas = 20
 dim(pca_datos$rotation)
 
 # Varianza de las componentes principales
 pca_datos$sdev^2
+
+#===================================== Normalización del rango de los datos ====================================#
+
+
