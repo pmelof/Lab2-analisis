@@ -176,6 +176,7 @@ desnormalization <- function(col, min, max, name){
   return(data)
 }
 
+
 desnormalize_all_centers <- function(data, centers, k){
   data_final <- cbind(desnormalization(centers[1:k], min(data$age), max(data$age), "age"))
   data_final <- cbind(data_final, desnormalization(centers[1:k,2], min(data$sex), max(data$sex), "sex"))
@@ -197,6 +198,31 @@ desnormalize_all_centers <- function(data, centers, k){
   data_final <- cbind(data_final, desnormalization(centers[1:k,18], min(data$TT4), max(data$TT4), "TT4"))
   data_final <- cbind(data_final, desnormalization(centers[1:k,19], min(data$T4U), max(data$T4U), "T4U"))
   data_final <- cbind(data_final, desnormalization(centers[1:k,20], min(data$FTI), max(data$FTI), "FTI"))
+  return(data_final)
+}
+
+
+desnormalize_all_dataframe <- function(mydata,data){
+  data_final <- cbind(desnormalization(mydata$age, min(data$age), max(data$age), "age"))
+  data_final <- cbind(data_final, desnormalization(mydata$sex, min(data$sex), max(data$sex), "sex"))
+  data_final <- cbind(data_final, desnormalization(mydata$on_thyroxine, min(data$on_thyroxine), max(data$on_thyroxine), "on_thyroxine"))
+  data_final <- cbind(data_final, desnormalization(mydata$query_on_thyroxine, min(data$query_on_thyroxine), max(data$query_on_thyroxine), "query_on_thyroxine"))
+  data_final <- cbind(data_final, desnormalization(mydata$on_antithyroid_medication, min(data$on_antithyroid_medication), max(data$on_antithyroid_medication), "on_antithyroid_medication"))
+  data_final <- cbind(data_final, desnormalization(mydata$sick, min(data$sick), max(data$sick), "sick"))
+  data_final <- cbind(data_final, desnormalization(mydata$pregnant, min(data$pregnant), max(data$pregnant), "pregnant"))
+  data_final <- cbind(data_final, desnormalization(mydata$thyroid_surgery, min(data$thyroid_surgery), max(data$thyroid_surgery), "thyroid_surgery"))
+  data_final <- cbind(data_final, desnormalization(mydata$I131_treatment, min(data$I131_treatment), max(data$I131_treatment), "I131_treatment"))
+  data_final <- cbind(data_final, desnormalization(mydata$query_hypothyroid, min(data$query_hypothyroid), max(data$query_hypothyroid), "query_hypothyroid"))
+  data_final <- cbind(data_final, desnormalization(mydata$query_hyperthyroid, min(data$query_hyperthyroid), max(data$query_hyperthyroid), "query_hyperthyroid"))
+  data_final <- cbind(data_final, desnormalization(mydata$lithium, min(data$lithium), max(data$lithium), "lithium"))
+  data_final <- cbind(data_final, desnormalization(mydata$goitre, min(data$goitre), max(data$goitre), "goitre"))
+  data_final <- cbind(data_final, desnormalization(mydata$tumor, min(data$tumor), max(data$tumor), "tumor"))
+  data_final <- cbind(data_final, desnormalization(mydata$psych, min(data$psych), max(data$psych), "psych"))
+  data_final <- cbind(data_final, desnormalization(mydata$TSH, min(data$TSH), max(data$TSH), "TSH"))
+  data_final <- cbind(data_final, desnormalization(mydata$T3, min(data$T3), max(data$T3), "T3"))
+  data_final <- cbind(data_final, desnormalization(mydata$TT4, min(data$TT4), max(data$TT4), "TT4"))
+  data_final <- cbind(data_final, desnormalization(mydata$T4U, min(data$T4U), max(data$T4U), "T4U"))
+  data_final <- cbind(data_final, desnormalization(mydata$FTI, min(data$FTI), max(data$FTI), "FTI"))
   return(data_final)
 }
 
@@ -552,12 +578,17 @@ mydata <- data.frame(sep_data_normalized, k4_means$cluster)
 
 
 #-------------------------------------------------------------------
-  #                      Desnormalizar variables 
-  #
-  # Para el clúster con k=4
+#                      Desnormalizar variables 
+#
+# Para el clúster con k=4
   
-  # Invertir data frame.
+# Desnormalizar e invertir data frame.
 k4_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k4_means$centers, 4)))
 k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k6_means$centers, 6)))
 
-# ----------------------------------------------------------
+# Desnormalizar mydata
+new_data <- desnormalize_all_dataframe(mydata, sep_data)
+new_data <- data.frame(new_data, mydata[21:22])
+
+# ------------------------------------------------------------------
+
