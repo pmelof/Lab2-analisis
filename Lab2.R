@@ -13,6 +13,14 @@ library(factoextra)
 # Librería PCA
 library(FactoMineR)
 
+library(cluster)
+
+
+#library(GGally)
+#library(plotly)
+
+#library(tidyverse)
+
 
 #library(quantmod)
 
@@ -76,6 +84,18 @@ get_all_measures <- function(data_frame){
 }
 
 
+# ----------------------------------------
+frecuencias <- function(col, name){
+  frequencies <- data.frame(
+    True = NROW(subset(col, col == 1)),
+    False = NROW(subset(col, col == 0))
+  )
+  rownames(frequencies) <- c(name)
+  return(frequencies)
+}
+#-----------------------------------------
+
+
 
 # Función que calcula la frecuencia de una columna perteneciente a un data frame.
 # Recibe una columna de un data frame y el nombre de la columna.
@@ -115,35 +135,40 @@ get_all_frequency <- function(data_frame){
 # Función que genera un dataframe con todos los valores normalizados.
 # Recibe una columna del data frame.
 # Entrega un data frame con los valores normalizados de la columna.
-normalize <- function(col, name, max){
+normalize <- function(col, name){
+  max = max(col)
+  min = min(col)
   data_normalized <- data.frame(
-    name = col/max
+    value = ((col-min)/(max-min))
   )
   colnames(data_normalized) <- name
   return(data_normalized)
 }
 
+# Función que genera un dataframe con todos los valores normalizados de un data frame.
+# Recibe un data frame.
+# Entrega un data frame con los valores normalizados de todas las columnas.
 normalize_all <- function(data_frame){
-  data_final <- cbind(normalize(data_frame$age, "age", max(data_frame$age)))
-  data_final <- cbind(data_final, normalize(data_frame$sex, "sex", max(data_frame$sex)))
-  data_final <- cbind(data_final, normalize(data_frame$on_thyroxine, "on thyroxine", max(data_frame$on_thyroxine)))
-  data_final <- cbind(data_final, normalize(data_frame$query_on_thyroxine, "query on thyroxine", max(data_frame$query_on_thyroxine)))
-  data_final <- cbind(data_final, normalize(data_frame$on_antithyroid_medication, "on antithyroid medication", max(data_frame$on_antithyroid_medication)))
-  data_final <- cbind(data_final, normalize(data_frame$sick, "sick", max(data_frame$sick)))
-  data_final <- cbind(data_final, normalize(data_frame$pregnant, "pregnant", max(data_frame$pregnant)))
-  data_final <- cbind(data_final, normalize(data_frame$thyroid_surgery, "thyroid surgery", max(data_frame$thyroid_surgery)))
-  data_final <- cbind(data_final, normalize(data_frame$I131_treatment, "I131 treatment", max(data_frame$I131_treatment)))
-  data_final <- cbind(data_final, normalize(data_frame$query_hypothyroid, "query hypothyroid", max(data_frame$query_hypothyroid)))
-  data_final <- cbind(data_final, normalize(data_frame$query_hyperthyroid, "query hyperthyroid", max(data_frame$query_hyperthyroid)))
-  data_final <- cbind(data_final, normalize(data_frame$lithium, "lithium", max(data_frame$lithium)))
-  data_final <- cbind(data_final, normalize(data_frame$goitre, "goitre", max(data_frame$goitre)))
-  data_final <- cbind(data_final, normalize(data_frame$tumor, "tumor", max(data_frame$tumor)))
-  data_final <- cbind(data_final, normalize(data_frame$psych, "psych", max(data_frame$psych)))
-  data_final <- cbind(data_final, normalize(data_frame$TSH, "TSH", max(data_frame$TSH)))
-  data_final <- cbind(data_final, normalize(data_frame$T3, "T3", max(data_frame$T3)))
-  data_final <- cbind(data_final, normalize(data_frame$TT4, "TT4", max(data_frame$TT4)))
-  data_final <- cbind(data_final, normalize(data_frame$T4U, "T4U", max(data_frame$T4U)))
-  data_final <- cbind(data_final, normalize(data_frame$FTI, "FTI", max(data_frame$FTI)))
+  data_final <- cbind(normalize(data_frame$age, "age"))
+  data_final <- cbind(data_final, normalize(data_frame$sex, "sex"))
+  data_final <- cbind(data_final, normalize(data_frame$on_thyroxine, "on thyroxine"))
+  data_final <- cbind(data_final, normalize(data_frame$query_on_thyroxine, "query on thyroxine"))
+  data_final <- cbind(data_final, normalize(data_frame$on_antithyroid_medication, "on antithyroid medication"))
+  data_final <- cbind(data_final, normalize(data_frame$sick, "sick"))
+  data_final <- cbind(data_final, normalize(data_frame$pregnant, "pregnant"))
+  data_final <- cbind(data_final, normalize(data_frame$thyroid_surgery, "thyroid surgery"))
+  data_final <- cbind(data_final, normalize(data_frame$I131_treatment, "I131 treatment"))
+  data_final <- cbind(data_final, normalize(data_frame$query_hypothyroid, "query hypothyroid"))
+  data_final <- cbind(data_final, normalize(data_frame$query_hyperthyroid, "query hyperthyroid"))
+  data_final <- cbind(data_final, normalize(data_frame$lithium, "lithium"))
+  data_final <- cbind(data_final, normalize(data_frame$goitre, "goitre"))
+  data_final <- cbind(data_final, normalize(data_frame$tumor, "tumor"))
+  data_final <- cbind(data_final, normalize(data_frame$psych, "psych"))
+  data_final <- cbind(data_final, normalize(data_frame$TSH, "TSH"))
+  data_final <- cbind(data_final, normalize(data_frame$T3, "T3"))
+  data_final <- cbind(data_final, normalize(data_frame$TT4, "TT4"))
+  data_final <- cbind(data_final, normalize(data_frame$T4U, "T4U"))
+  data_final <- cbind(data_final, normalize(data_frame$FTI, "FTI"))
   return(data_final)
 }
 
@@ -488,4 +513,65 @@ sep_data_normalized <- data.frame(
 sep_data_normalized <- normalize_all(sep_data_normalized)
 
 
+#===================================== Obtención del Clúster ====================================#
 
+# Primero se obtendrá la cantidad óptima de centroides a utilizar.
+# Método del codo
+fviz_nbclust(sep_data_normalized, kmeans, method = "wss")
+# Método silhouette
+fviz_nbclust(sep_data_normalized, kmeans, method = "silhouette")+theme_classic()
+
+# Los valores de k a implementar son 4, 5 y 6, según los métodos anteriores.
+set.seed(123)
+k4_means <- kmeans(sep_data_normalized, centers = 4, nstart = 50)
+k5_means <- kmeans(sep_data_normalized, centers = 5, nstart = 50)
+k6_means <- kmeans(sep_data_normalized, centers = 6, nstart = 50)
+
+
+
+
+fviz_cluster(k4_means, data = sep_data_normalized, frame.type = "convex")
+
+
+### Usando pam
+pam.res <- pam(sep_data_normalized, 4)
+# Visualize
+fviz_cluster(pam.res)
+
+
+# Intento para graficar
+aggregate(sep_data_normalized, by=list(k4_means$cluster), FUN = mean)
+# Para visualizar
+par(mfrow=c(1,2))
+clusplot(sep_data_normalized, k4_means$cluster, color=TRUE, shade=TRUE, labels=0.1, lines=0, main="k medias")
+
+
+d <- dist(sep_data_normalized, method = "euclidean")
+
+
+
+
+#----------------------------------------------------
+
+X <- 1:2215
+Y <- 1:2215
+
+
+sep_data_normalized$cluster <- k_means$cluster
+ggplot() + geom_point(aes(x = X, y = Y, color = cluster), data = sep_data_normalized, size = 2) +
+  scale_colour_gradientn(colours=rainbow(4)) +
+  geom_point(aes(x = k_means$centers[, 1], y = k_means$centers[, 2]), color = 'black', size = 3) + 
+  ggtitle('Clusters de Datos con k = 4 / K-Medias') + 
+  xlab('X') + ylab('Y')
+
+
+
+
+#data <- sep_data_normalized %>% mutate(cluster = km_clusters$cluster)
+#data <- sep_data_normalized %>% mutate(cluster = as.factor(cluster),
+#                          grupo   = as.factor(grupo))
+
+#ggplot(data = data, aes(x = x, y = y, color = grupo)) +
+#  geom_text(aes(label = cluster), size = 5) +
+#  theme_bw() +
+#  theme(legend.position = "none")
