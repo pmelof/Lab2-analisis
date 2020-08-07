@@ -16,14 +16,6 @@ library(FactoMineR)
 library(cluster)
 
 
-#library(GGally)
-#library(plotly)
-
-#library(tidyverse)
-
-
-#library(quantmod)
-
 
 cat(" =============================== Laboratorio N°2 Análisis de Datos =============================== \n\n")
 cat(" Desarrolladores: Patricia Melo - Gustavo Hurtado\n\n")
@@ -39,10 +31,10 @@ url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/thyroid-disease
 # Se leen los datos de la DB y se almacenan en data
 data <- read.table(url, sep = "\t", dec = ",")
 
-col_names <- c("age","sex","on thyroxine","query on thyroxine","on antithyroid medication","sick","pregnant","thyroid surgery",
-               "I131 treatment","query hypothyroid","query hyperthyroid","lithium","goitre","tumor","hypopituitary", "psych",
-               "TSH measured", "TSH","T3 measured","T3","TT4 measured","TT4","T4U measured","T4U","FTI measured","FTI","TBG measured",
-               "TBG","referral source","class")
+col_names <- c("age","sex","on_thyroxine","query_on_thyroxine","on_antithyroid_medication","sick","pregnant","thyroid_surgery",
+               "I131_treatment","query_hypothyroid","query_hyperthyroid","lithium","goitre","tumor","hypopituitary", "psych",
+               "TSH_measured", "TSH","T3_measured","T3","TT4_measured","TT4","T4U_measured","T4U","FTI_measured","FTI","TBG_measured",
+               "TBG","referral_source","class")
 
 # Se le asignan nombres apropiados a las columnas de los datos  
 sep_data <- separate(data, col = "V1", into = col_names, sep = ",")
@@ -114,20 +106,21 @@ get_col_frequency <- function(col, name){
 # Recibe un data frame.
 # Retorna un data frame con las frecuencias de true y false de cada columna del data frame.
 get_all_frequency <- function(data_frame){
-  total_frequency <- rbind(get_col_frequency(data_frame$on_thyroxine, "on thyroxine"))
-  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$query_on_thyroxine, "query on thyroxine"))
-  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$on_antithyroid_medication, "on antithyroid medication"))
+  total_frequency <- rbind(get_col_frequency(data_frame$on_thyroxine, "on_thyroxine"))
+  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$query_on_thyroxine, "query_on_thyroxine"))
+  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$on_antithyroid_medication, "on_antithyroid_medication"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$sick, "sick"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$pregnant, "pregnant"))
-  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$thyroid_surgery, "thyroid surgery"))
-  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$I131_treatment, "I131 treatment"))
-  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$query_hypothyroid, "query hypothyroid"))
-  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$query_hyperthyroid, "query hyperthyroid"))
+  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$thyroid_surgery, "thyroid_surgery"))
+  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$I131_treatment, "I131_treatment"))
+  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$query_hypothyroid, "query_hypothyroid"))
+  total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$query_hyperthyroid, "query_hyperthyroid"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$lithium, "lithium"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$goitre, "goitre"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$tumor, "tumor"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$hypopituitary, "hypopituitary"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$psych, "psych"))
+  # total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$class, "class"))
   return(total_frequency)
 }
 
@@ -151,15 +144,15 @@ normalize <- function(col, name){
 normalize_all <- function(data_frame){
   data_final <- cbind(normalize(data_frame$age, "age"))
   data_final <- cbind(data_final, normalize(data_frame$sex, "sex"))
-  data_final <- cbind(data_final, normalize(data_frame$on_thyroxine, "on thyroxine"))
-  data_final <- cbind(data_final, normalize(data_frame$query_on_thyroxine, "query on thyroxine"))
-  data_final <- cbind(data_final, normalize(data_frame$on_antithyroid_medication, "on antithyroid medication"))
+  data_final <- cbind(data_final, normalize(data_frame$on_thyroxine, "on_thyroxine"))
+  data_final <- cbind(data_final, normalize(data_frame$query_on_thyroxine, "query_on_thyroxine"))
+  data_final <- cbind(data_final, normalize(data_frame$on_antithyroid_medication, "on_antithyroid_medication"))
   data_final <- cbind(data_final, normalize(data_frame$sick, "sick"))
   data_final <- cbind(data_final, normalize(data_frame$pregnant, "pregnant"))
-  data_final <- cbind(data_final, normalize(data_frame$thyroid_surgery, "thyroid surgery"))
-  data_final <- cbind(data_final, normalize(data_frame$I131_treatment, "I131 treatment"))
-  data_final <- cbind(data_final, normalize(data_frame$query_hypothyroid, "query hypothyroid"))
-  data_final <- cbind(data_final, normalize(data_frame$query_hyperthyroid, "query hyperthyroid"))
+  data_final <- cbind(data_final, normalize(data_frame$thyroid_surgery, "thyroid_surgery"))
+  data_final <- cbind(data_final, normalize(data_frame$I131_treatment, "I131_treatment"))
+  data_final <- cbind(data_final, normalize(data_frame$query_hypothyroid, "query_hypothyroid"))
+  data_final <- cbind(data_final, normalize(data_frame$query_hyperthyroid, "query_hyperthyroid"))
   data_final <- cbind(data_final, normalize(data_frame$lithium, "lithium"))
   data_final <- cbind(data_final, normalize(data_frame$goitre, "goitre"))
   data_final <- cbind(data_final, normalize(data_frame$tumor, "tumor"))
@@ -172,6 +165,40 @@ normalize_all <- function(data_frame){
   return(data_final)
 }
 
+# Desnormaliza un valor, según los datos a la columna perteneciente.
+# Recibe un valor, min de la columna y max de la misma columna.
+# Retorna el valor desnormalizado.
+desnormalization <- function(col, min, max, name){
+  data <- data.frame(
+    value = round(((col*(max-min))+min),3)
+  )
+  colnames(data) <- name
+  return(data)
+}
+
+desnormalize_all_centers <- function(data, centers, k){
+  data_final <- cbind(desnormalization(centers[1:k], min(data$age), max(data$age), "age"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,2], min(data$sex), max(data$sex), "sex"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,3], min(data$on_thyroxine), max(data$on_thyroxine), "on_thyroxine"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,4], min(data$query_on_thyroxine), max(data$query_on_thyroxine), "query_on_thyroxine"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,5], min(data$on_antithyroid_medication), max(data$on_antithyroid_medication), "on_antithyroid_medication"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,6], min(data$sick), max(data$sick), "sick"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,7], min(data$pregnant), max(data$pregnant), "pregnant"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,8], min(data$thyroid_surgery), max(data$thyroid_surgery), "thyroid_surgery"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,9], min(data$I131_treatment), max(data$I131_treatment), "I131_treatment"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,10], min(data$query_hypothyroid), max(data$query_hypothyroid), "query_hypothyroid"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,11], min(data$query_hyperthyroid), max(data$query_hyperthyroid), "query_hyperthyroid"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,12], min(data$lithium), max(data$lithium), "lithium"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,13], min(data$goitre), max(data$goitre), "goitre"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,14], min(data$tumor), max(data$tumor), "tumor"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,15], min(data$psych), max(data$psych), "psych"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,16], min(data$TSH), max(data$TSH), "TSH"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,17], min(data$T3), max(data$T3), "T3"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,18], min(data$TT4), max(data$TT4), "TT4"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,19], min(data$T4U), max(data$T4U), "T4U"))
+  data_final <- cbind(data_final, desnormalization(centers[1:k,20], min(data$FTI), max(data$FTI), "FTI"))
+  return(data_final)
+}
 
 #======================================= Reconocimiento de datos ==========================================
 
@@ -226,28 +253,17 @@ get_all_measures(datos)
 # Se tiene para sexo: F, M.
 # Resto de variables categóricas: t, f.
 
-
-on_thyroxine <- sep_data$`on thyroxine`
-query_on_thyroxine <- sep_data$`query on thyroxine`
-on_antithyroid_medication <- sep_data$`on antithyroid medication`
-thyroid_surgery <- sep_data$`thyroid surgery`
-I131_treatment <- sep_data$`I131 treatment`
-query_hypothyroid <- sep_data$`query hypothyroid`
-query_hyperthyroid <- sep_data$`query hyperthyroid`
-
-
-
 # data frame con variables cualitativas 
 data_cualitative <- data.frame(
-  "on_thyroxine" = on_thyroxine,
-  "query_on_thyroxine" = query_on_thyroxine,
-  "on_antithyroid_medication" = on_antithyroid_medication,
+  "on_thyroxine" = sep_data$on_thyroxine,
+  "query_on_thyroxine" = sep_data$query_on_thyroxine,
+  "on_antithyroid_medication" = sep_data$on_antithyroid_medication,
   "sick" = sep_data$sick,
   "pregnant" = sep_data$pregnant,
-  "thyroid_surgery" = thyroid_surgery,
-  "I131_treatment" = I131_treatment,
-  "query_hypothyroid" = query_hypothyroid,
-  "query_hyperthyroid" = query_hyperthyroid,
+  "thyroid_surgery" = sep_data$thyroid_surgery,
+  "I131_treatment" = sep_data$I131_treatment,
+  "query_hypothyroid" = sep_data$query_hypothyroid,
+  "query_hyperthyroid" = sep_data$query_hyperthyroid,
   "lithium" = sep_data$lithium,
   "goitre" = sep_data$goitre,
   "tumor" = sep_data$tumor,
@@ -273,7 +289,7 @@ sep_data$class <- vapply(strsplit(sep_data$class,"\\."), `[`, 1, FUN.VALUE=chara
 # Se obtiene el número total de individuos que se enceuntran en el estudio.
 total_individuos <- nrow(sep_data)    # 2800
 
-# Esta variable auxiliar será utilizada para hacer cálculos más adelante
+# Esta variable auxiliar guardará los datos sin modificar
 sep_data_aux <- sep_data
 
 
@@ -288,15 +304,15 @@ sep_data$TBG <- NULL
 
 # Variables categóricas:
 # Como se eliminó TBG, ya no es necesario TBG measured.
-sep_data$`TBG measured` <- NULL
+sep_data$TBG_measured <- NULL
 
 # Además, al tener valores en el resto de las variables numéricas hace que todas las variables que tengan
 # "measured" no entreguen mayor información, ya que si hay valor entonces el individuo se realizó el examen.
-sep_data$`TSH measured` <- NULL
-sep_data$`T3 measured` <- NULL
-sep_data$`TT4 measured` <- NULL
-sep_data$`T4U measured` <- NULL
-sep_data$`FTI measured` <- NULL
+sep_data$TSH_measured <- NULL
+sep_data$T3_measured <- NULL
+sep_data$TT4_measured <- NULL
+sep_data$T4U_measured <- NULL
+sep_data$FTI_measured <- NULL
 
 # Con el reconocimiento de datos previamente hecho, se vió que la variable hypopituitary no tenía una
 # gran variación en los resultados, donde había 1 verdadero y 2799 falsos, por este motivo se elimina.
@@ -304,8 +320,8 @@ sep_data$hypopituitary <- NULL
 
 # Otras variables discretas que no entregan mayor información al estudio con respecto a los calculos son
 # referral source y class, eliminando así a ambas.
-sep_data$`referral source`<-NULL
-sep_data$class <- NULL
+sep_data$referral_source<-NULL
+#sep_data$class <- NULL
 
 
 # -------------------------------------------------------------------
@@ -452,15 +468,15 @@ sep_data[sep_data == "t"] <- 1
 # Transformar todos los datos a numéricos
 # Variables categóricas:
 sep_data$sex <- as.numeric(as.character(sep_data$sex))
-sep_data$`on thyroxine` <- as.numeric(as.character(sep_data$`on thyroxine`))
-sep_data$`query on thyroxine` <- as.numeric(as.character(sep_data$`query on thyroxine`))
-sep_data$`on antithyroid medication` <- as.numeric(as.character(sep_data$`on antithyroid medication`))
+sep_data$on_thyroxine <- as.numeric(as.character(sep_data$on_thyroxine))
+sep_data$query_on_thyroxine <- as.numeric(as.character(sep_data$query_on_thyroxine))
+sep_data$on_antithyroid_medication <- as.numeric(as.character(sep_data$on_antithyroid_medication))
 sep_data$sick <- as.numeric(as.character(sep_data$sick))
 sep_data$pregnant <- as.numeric(as.character(sep_data$pregnant))
-sep_data$`thyroid surgery` <- as.numeric(as.character(sep_data$`thyroid surgery`))
-sep_data$`I131 treatment` <- as.numeric(as.character(sep_data$`I131 treatment`))
-sep_data$`query hypothyroid` <- as.numeric(as.character(sep_data$`query hypothyroid`))
-sep_data$`query hyperthyroid` <- as.numeric(as.character(sep_data$`query hyperthyroid`))
+sep_data$thyroid_surgery <- as.numeric(as.character(sep_data$thyroid_surgery))
+sep_data$I131_treatment <- as.numeric(as.character(sep_data$I131_treatment))
+sep_data$query_hypothyroid <- as.numeric(as.character(sep_data$query_hypothyroid))
+sep_data$query_hyperthyroid <- as.numeric(as.character(sep_data$query_hyperthyroid))
 sep_data$lithium <- as.numeric(as.character(sep_data$lithium))
 sep_data$goitre <- as.numeric(as.character(sep_data$goitre))
 sep_data$tumor <- as.numeric(as.character(sep_data$tumor))
@@ -471,9 +487,9 @@ sep_data$T3 <- as.numeric(as.character(sep_data$T3))
 
 
 # Obtener componentes principales
-pca_datos <- prcomp(sep_data, scale = TRUE)
+pca_datos <- prcomp(sep_data[1:20], scale = TRUE)
 #
-pca2 <- PCA(sep_data, scale.unit = TRUE, ncp = 20, graph = FALSE)
+pca2 <- PCA(sep_data[1:20], scale.unit = TRUE, ncp = 20, graph = FALSE)
 
 # Cantidad de componentes principales distintas = 20
 dim(pca_datos$rotation)
@@ -490,15 +506,15 @@ pca_datos$sdev^2
 sep_data_normalized <- data.frame(
   age = sep_data$age, 
   sex = sep_data$sex, 
-  on_thyroxine = sep_data$`on thyroxine`, 
-  query_on_thyroxine = sep_data$`query on thyroxine`, 
-  on_antithyroid_medication = sep_data$`on antithyroid medication`, 
+  on_thyroxine = sep_data$on_thyroxine, 
+  query_on_thyroxine = sep_data$query_on_thyroxine, 
+  on_antithyroid_medication = sep_data$on_antithyroid_medication, 
   sick = sep_data$sick, 
   pregnant = sep_data$pregnant, 
-  thyroid_surgery = sep_data$`thyroid surgery`, 
-  I131_treatment = sep_data$`I131 treatment`, 
-  query_hypothyroid = sep_data$`query hypothyroid`, 
-  query_hyperthyroid = sep_data$`query hyperthyroid`, 
+  thyroid_surgery = sep_data$thyroid_surgery, 
+  I131_treatment = sep_data$I131_treatment, 
+  query_hypothyroid = sep_data$query_hypothyroid, 
+  query_hyperthyroid = sep_data$query_hyperthyroid, 
   lithium = sep_data$lithium, 
   goitre = sep_data$goitre,
   tumor = sep_data$tumor, 
@@ -511,67 +527,37 @@ sep_data_normalized <- data.frame(
 )
 
 sep_data_normalized <- normalize_all(sep_data_normalized)
+sep_data_normalized <- data.frame(sep_data_normalized,sep_data$class)
 
 
 #===================================== Obtención del Clúster ====================================#
 
 # Primero se obtendrá la cantidad óptima de centroides a utilizar.
 # Método del codo
-fviz_nbclust(sep_data_normalized, kmeans, method = "wss")
+fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "wss")
 # Método silhouette
-fviz_nbclust(sep_data_normalized, kmeans, method = "silhouette")+theme_classic()
+fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "silhouette")+theme_classic()
 
 # Los valores de k a implementar son 4, 5 y 6, según los métodos anteriores.
 set.seed(123)
-k4_means <- kmeans(sep_data_normalized, centers = 4, nstart = 50)
-k5_means <- kmeans(sep_data_normalized, centers = 5, nstart = 50)
-k6_means <- kmeans(sep_data_normalized, centers = 6, nstart = 50)
+k4_means <- kmeans(sep_data_normalized[1:20], centers = 4, nstart = 50)
+k5_means <- kmeans(sep_data_normalized[1:20], centers = 5, nstart = 50)
+k6_means <- kmeans(sep_data_normalized[1:20], centers = 6, nstart = 50)
+
+# algo
+aggregate(sep_data_normalized[1:20],by=list(k4_means$cluster),FUN=mean)
+# append cluster assignment
+
+mydata <- data.frame(sep_data_normalized, k4_means$cluster)
 
 
+#-------------------------------------------------------------------
+  #                      Desnormalizar variables 
+  #
+  # Para el clúster con k=4
+  
+  # Invertir data frame.
+k4_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k4_means$centers, 4)))
+k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k6_means$centers, 6)))
 
-
-fviz_cluster(k4_means, data = sep_data_normalized, frame.type = "convex")
-
-
-### Usando pam
-pam.res <- pam(sep_data_normalized, 4)
-# Visualize
-fviz_cluster(pam.res)
-
-
-# Intento para graficar
-aggregate(sep_data_normalized, by=list(k4_means$cluster), FUN = mean)
-# Para visualizar
-par(mfrow=c(1,2))
-clusplot(sep_data_normalized, k4_means$cluster, color=TRUE, shade=TRUE, labels=0.1, lines=0, main="k medias")
-
-
-d <- dist(sep_data_normalized, method = "euclidean")
-
-
-
-
-#----------------------------------------------------
-
-X <- 1:2215
-Y <- 1:2215
-
-
-sep_data_normalized$cluster <- k_means$cluster
-ggplot() + geom_point(aes(x = X, y = Y, color = cluster), data = sep_data_normalized, size = 2) +
-  scale_colour_gradientn(colours=rainbow(4)) +
-  geom_point(aes(x = k_means$centers[, 1], y = k_means$centers[, 2]), color = 'black', size = 3) + 
-  ggtitle('Clusters de Datos con k = 4 / K-Medias') + 
-  xlab('X') + ylab('Y')
-
-
-
-
-#data <- sep_data_normalized %>% mutate(cluster = km_clusters$cluster)
-#data <- sep_data_normalized %>% mutate(cluster = as.factor(cluster),
-#                          grupo   = as.factor(grupo))
-
-#ggplot(data = data, aes(x = x, y = y, color = grupo)) +
-#  geom_text(aes(label = cluster), size = 5) +
-#  theme_bw() +
-#  theme(legend.position = "none")
+# ----------------------------------------------------------
