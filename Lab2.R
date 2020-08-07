@@ -43,7 +43,7 @@ sep_data <- separate(data, col = "V1", into = col_names, sep = ",")
 
 
 # Se genera una función que calcula la media, mediana, moda, desviación standard, mínimo y máximo 
-# de una columna perteneciente pertenenciente a un data frame.
+# de una columna perteneciente a un data frame.
 # Recibe una columna de un data frame y el nombre de la columna.
 # Retorna un data frame con la media, mediana, moda, mínimo, máximo y desviación standard de la columna.
 get_col_measures <- function(col, name){
@@ -64,9 +64,8 @@ get_col_measures <- function(col, name){
 
 # Se genera una función que calcula la media, mediana, moda y desviación standard de todas las columnas de un
 # data frame con valores numéricos contínuos
-# Recibeun data frame y el nombre de la columna.
+# Recibe un data frame.
 # Retorna un data frame con la media, mediana, moda y desviación standard de cada columna del data frame.
-
 get_all_measures <- function(data_frame){
   total_measurements <- rbind(get_col_measures(data_frame$age,"age"), get_col_measures(data_frame$TSH, "TSH"))
   total_measurements <- rbind(total_measurements, get_col_measures(data_frame$T3, "T3"))
@@ -78,8 +77,9 @@ get_all_measures <- function(data_frame){
 
 
 
-# Entrega frecuencias de true o false de una columna.
-
+# Función que calcula la frecuencia de una columna perteneciente a un data frame.
+# Recibe una columna de un data frame y el nombre de la columna.
+# Retorna un data frame con la frecuencia de true y false que se encuentran en la columna.
 get_col_frequency <- function(col, name){
   frequencies <- data.frame(
     True = NROW(subset(col, col == "t")),
@@ -90,7 +90,9 @@ get_col_frequency <- function(col, name){
 }
 
 
-# Función que netregue cantidad de True o False por columna
+# Función que calcula la frecuencia de todas las columnas de un data frame con variables discretas.
+# Recibe un data frame.
+# Retorna un data frame con las frecuencias de true y false de cada columna del data frame.
 get_all_frequency <- function(data_frame){
   total_frequency <- rbind(get_col_frequency(data_frame$on_thyroxine, "on thyroxine"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$query_on_thyroxine, "query on thyroxine"))
@@ -107,6 +109,42 @@ get_all_frequency <- function(data_frame){
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$hypopituitary, "hypopituitary"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$psych, "psych"))
   return(total_frequency)
+}
+
+
+# Función que genera un dataframe con todos los valores normalizados.
+# Recibe una columna del data frame.
+# Entrega un data frame con los valores normalizados de la columna.
+normalize <- function(col, name, max){
+  data_normalized <- data.frame(
+    name = col/max
+  )
+  colnames(data_normalized) <- name
+  return(data_normalized)
+}
+
+normalize_all <- function(data_frame){
+  data_final <- cbind(normalize(data_frame$age, "age", max(data_frame$age)))
+  data_final <- cbind(data_final, normalize(data_frame$sex, "sex", max(data_frame$sex)))
+  data_final <- cbind(data_final, normalize(data_frame$on_thyroxine, "on thyroxine", max(data_frame$on_thyroxine)))
+  data_final <- cbind(data_final, normalize(data_frame$query_on_thyroxine, "query on thyroxine", max(data_frame$query_on_thyroxine)))
+  data_final <- cbind(data_final, normalize(data_frame$on_antithyroid_medication, "on antithyroid medication", max(data_frame$on_antithyroid_medication)))
+  data_final <- cbind(data_final, normalize(data_frame$sick, "sick", max(data_frame$sick)))
+  data_final <- cbind(data_final, normalize(data_frame$pregnant, "pregnant", max(data_frame$pregnant)))
+  data_final <- cbind(data_final, normalize(data_frame$thyroid_surgery, "thyroid surgery", max(data_frame$thyroid_surgery)))
+  data_final <- cbind(data_final, normalize(data_frame$I131_treatment, "I131 treatment", max(data_frame$I131_treatment)))
+  data_final <- cbind(data_final, normalize(data_frame$query_hypothyroid, "query hypothyroid", max(data_frame$query_hypothyroid)))
+  data_final <- cbind(data_final, normalize(data_frame$query_hyperthyroid, "query hyperthyroid", max(data_frame$query_hyperthyroid)))
+  data_final <- cbind(data_final, normalize(data_frame$lithium, "lithium", max(data_frame$lithium)))
+  data_final <- cbind(data_final, normalize(data_frame$goitre, "goitre", max(data_frame$goitre)))
+  data_final <- cbind(data_final, normalize(data_frame$tumor, "tumor", max(data_frame$tumor)))
+  data_final <- cbind(data_final, normalize(data_frame$psych, "psych", max(data_frame$psych)))
+  data_final <- cbind(data_final, normalize(data_frame$TSH, "TSH", max(data_frame$TSH)))
+  data_final <- cbind(data_final, normalize(data_frame$T3, "T3", max(data_frame$T3)))
+  data_final <- cbind(data_final, normalize(data_frame$TT4, "TT4", max(data_frame$TT4)))
+  data_final <- cbind(data_final, normalize(data_frame$T4U, "T4U", max(data_frame$T4U)))
+  data_final <- cbind(data_final, normalize(data_frame$FTI, "FTI", max(data_frame$FTI)))
+  return(data_final)
 }
 
 
@@ -419,5 +457,35 @@ dim(pca_datos$rotation)
 pca_datos$sdev^2
 
 #===================================== Normalización del rango de los datos ====================================#
+
+# Cuando los datos estan en distintas unidades es recomendable normalizar.
+
+# Data con los datos a normalizar
+
+sep_data_normalized <- data.frame(
+  age = sep_data$age, 
+  sex = sep_data$sex, 
+  on_thyroxine = sep_data$`on thyroxine`, 
+  query_on_thyroxine = sep_data$`query on thyroxine`, 
+  on_antithyroid_medication = sep_data$`on antithyroid medication`, 
+  sick = sep_data$sick, 
+  pregnant = sep_data$pregnant, 
+  thyroid_surgery = sep_data$`thyroid surgery`, 
+  I131_treatment = sep_data$`I131 treatment`, 
+  query_hypothyroid = sep_data$`query hypothyroid`, 
+  query_hyperthyroid = sep_data$`query hyperthyroid`, 
+  lithium = sep_data$lithium, 
+  goitre = sep_data$goitre,
+  tumor = sep_data$tumor, 
+  psych = sep_data$psych, 
+  TSH = sep_data$TSH, 
+  T3 = sep_data$T3, 
+  TT4 = sep_data$TT4, 
+  T4U = sep_data$T4U, 
+  FTI = sep_data$FTI
+)
+
+sep_data_normalized <- normalize_all(sep_data_normalized)
+
 
 
