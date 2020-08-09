@@ -17,8 +17,6 @@ library(FactoMineR)
 library(cluster)
 
 
-library(dplyr)
-
 
 cat(" =============================== Laboratorio N°2 Análisis de Datos =============================== \n\n")
 cat(" Desarrolladores: Patricia Melo - Gustavo Hurtado\n\n")
@@ -136,7 +134,6 @@ get_all_frequency <- function(data_frame){
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$tumor, "tumor"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$hypopituitary, "hypopituitary"))
   total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$psych, "psych"))
-  # total_frequency <- rbind(total_frequency, get_col_frequency(data_frame$class, "class"))
   return(total_frequency)
 }
 
@@ -181,69 +178,6 @@ normalize_all <- function(data_frame){
   return(data_final)
 }
 
-# Desnormaliza un valor, según los datos a la columna perteneciente.
-# Recibe un valor, min de la columna y max de la misma columna.
-# Retorna el valor desnormalizado.
-desnormalization <- function(col, min, max, name){
-  data <- data.frame(
-    value = round(((col*(max-min))+min),3)
-  )
-  colnames(data) <- name
-  return(data)
-}
-
-
-desnormalize_all_centers <- function(data, centers, k){
-  data_final <- cbind(desnormalization(centers[1:k], min(data$age), max(data$age), "age"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,2], min(data$sex), max(data$sex), "sex"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,3], min(data$on_thyroxine), max(data$on_thyroxine), "on_thyroxine"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,4], min(data$query_on_thyroxine), max(data$query_on_thyroxine), "query_on_thyroxine"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,5], min(data$on_antithyroid_medication), max(data$on_antithyroid_medication), "on_antithyroid_medication"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,6], min(data$sick), max(data$sick), "sick"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,7], min(data$pregnant), max(data$pregnant), "pregnant"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,8], min(data$thyroid_surgery), max(data$thyroid_surgery), "thyroid_surgery"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,9], min(data$I131_treatment), max(data$I131_treatment), "I131_treatment"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,10], min(data$query_hypothyroid), max(data$query_hypothyroid), "query_hypothyroid"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,11], min(data$query_hyperthyroid), max(data$query_hyperthyroid), "query_hyperthyroid"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,12], min(data$lithium), max(data$lithium), "lithium"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,13], min(data$goitre), max(data$goitre), "goitre"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,14], min(data$tumor), max(data$tumor), "tumor"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,15], min(data$psych), max(data$psych), "psych"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,16], min(data$TSH), max(data$TSH), "TSH"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,17], min(data$T3), max(data$T3), "T3"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,18], min(data$TT4), max(data$TT4), "TT4"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,19], min(data$T4U), max(data$T4U), "T4U"))
-  data_final <- cbind(data_final, desnormalization(centers[1:k,20], min(data$FTI), max(data$FTI), "FTI"))
-  return(data_final)
-}
-
-
-# Función que genera un dataframe con todos los valores desnormalizados de un data frame.
-# Recibe un data frame y los datos originales.
-# Entrega un data frame con los valores desnormalizados de todo el data frame.
-desnormalize_all_dataframe <- function(mydata,data){
-  data_final <- cbind(desnormalization(mydata$age, min(data$age), max(data$age), "age"))
-  data_final <- cbind(data_final, desnormalization(mydata$sex, min(data$sex), max(data$sex), "sex"))
-  data_final <- cbind(data_final, desnormalization(mydata$on_thyroxine, min(data$on_thyroxine), max(data$on_thyroxine), "on_thyroxine"))
-  data_final <- cbind(data_final, desnormalization(mydata$query_on_thyroxine, min(data$query_on_thyroxine), max(data$query_on_thyroxine), "query_on_thyroxine"))
-  data_final <- cbind(data_final, desnormalization(mydata$on_antithyroid_medication, min(data$on_antithyroid_medication), max(data$on_antithyroid_medication), "on_antithyroid_medication"))
-  data_final <- cbind(data_final, desnormalization(mydata$sick, min(data$sick), max(data$sick), "sick"))
-  data_final <- cbind(data_final, desnormalization(mydata$pregnant, min(data$pregnant), max(data$pregnant), "pregnant"))
-  data_final <- cbind(data_final, desnormalization(mydata$thyroid_surgery, min(data$thyroid_surgery), max(data$thyroid_surgery), "thyroid_surgery"))
-  data_final <- cbind(data_final, desnormalization(mydata$I131_treatment, min(data$I131_treatment), max(data$I131_treatment), "I131_treatment"))
-  data_final <- cbind(data_final, desnormalization(mydata$query_hypothyroid, min(data$query_hypothyroid), max(data$query_hypothyroid), "query_hypothyroid"))
-  data_final <- cbind(data_final, desnormalization(mydata$query_hyperthyroid, min(data$query_hyperthyroid), max(data$query_hyperthyroid), "query_hyperthyroid"))
-  data_final <- cbind(data_final, desnormalization(mydata$lithium, min(data$lithium), max(data$lithium), "lithium"))
-  data_final <- cbind(data_final, desnormalization(mydata$goitre, min(data$goitre), max(data$goitre), "goitre"))
-  data_final <- cbind(data_final, desnormalization(mydata$tumor, min(data$tumor), max(data$tumor), "tumor"))
-  data_final <- cbind(data_final, desnormalization(mydata$psych, min(data$psych), max(data$psych), "psych"))
-  data_final <- cbind(data_final, desnormalization(mydata$TSH, min(data$TSH), max(data$TSH), "TSH"))
-  data_final <- cbind(data_final, desnormalization(mydata$T3, min(data$T3), max(data$T3), "T3"))
-  data_final <- cbind(data_final, desnormalization(mydata$TT4, min(data$TT4), max(data$TT4), "TT4"))
-  data_final <- cbind(data_final, desnormalization(mydata$T4U, min(data$T4U), max(data$T4U), "T4U"))
-  data_final <- cbind(data_final, desnormalization(mydata$FTI, min(data$FTI), max(data$FTI), "FTI"))
-  return(data_final)
-}
 
 #======================================= Reconocimiento de datos ==========================================
 
@@ -593,99 +527,36 @@ sep_data_normalized <- data.frame(sep_data_normalized,sep_data$class)
 
 #===================================== Obtención del Clúster ====================================#
 
-# Primero se obtendrá la cantidad óptima de centroides a utilizar.
-# Método del codo
-#fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "wss")
+# Primero se obtendrá la cantidad óptima de mediodes a utilizar.
+set.seed(123)
 
+# --------------------------- Con distancia Manhattan ---------------------------------
 # Método codo para PAM
-# elbow_pam <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "wss", k.max = 15,
-#              diss = dist(sep_data_normalized[1:20], method = "manhattan"))
-
-# Método silhouette
-#fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "silhouette")+theme_classic()
+elbow_pam <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "wss", k.max = 10,
+             diss = dist(sep_data_normalized[1:20], method = "manhattan"))
 
 # Método silhouette PAM
-# silhouette_pam <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "silhouette", k.max = 15,
-#              diss = dist(sep_data_normalized[1:20], method = "manhattan"))
+silhouette_pam <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "silhouette", k.max = 10,
+             diss = dist(sep_data_normalized[1:20], method = "manhattan"))
 
+# PAM con distancia manhattan
+pam4_manhattan <- pam(x = sep_data_normalized[1:20], k = 4, metric = "manhattan")
+pam7_manhattan <- pam(x = sep_data_normalized[1:20], k = 7, metric = "manhattan")
 
-# Los valores de k a implementar son 4, 5 y 6, según los métodos anteriores.
-set.seed(123)
-k4_means <- kmeans(sep_data_normalized[1:20], centers = 4, nstart = 50)
-#k5_means <- kmeans(sep_data_normalized[1:20], centers = 5, nstart = 50)
-#k6_means <- kmeans(sep_data_normalized[1:20], centers = 6, nstart = 50)
-
-pam4_cluster <- pam(x = sep_data_normalized[1:20], k = 4, metric = "manhattan")
-#pam_cluster <- pam(x = sep_data_normalized[1:20], k = 6, metric = "manhattan")
-
-# algo
-#aggregate(sep_data_normalized[1:20],by=list(k4_means$cluster),FUN=mean)
-aggregate(sep_data_normalized[1:20],by=list(pam4_cluster$clustering),FUN=mean)
-
-# append cluster assignment
-
-#mydata <- data.frame(sep_data_normalized, k4_means$cluster)
-data_final_4k <- data.frame(sep_data_normalized, pam4_cluster$clustering)
-
-
-frequcies_4cluster <- class_in_cluster_frequency(data_final_4k)
-
-
-# Falta hacer el de 7, quieres igual los datos para anlaizar o est trabajo que despué no se ocupará?
-
-#-------------------------------------------------------------------
-#                      Desnormalizar variables 
-#
-# Para el clúster con k=4
-  
-# Desnormalizar e invertir data frame.
-# k4_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k4_means$centers, 4)))
-# k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k6_means$centers, 6)))
-
-# Desnormalizar e invertir data frame.
-#pam_4_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], pam_cluster$medoids, 4)))
-#pam_6_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], pam_cluster$medoids, 6)))
-
-# Desnormalizar mydata
-#new_data <- desnormalize_all_dataframe(mydata, sep_data)
-#new_data <- data.frame(new_data, mydata[21:23])
-
-# ------------------------------------------------------------------
-  
+# ---------------------------- Con distancia Gower -------------------------------------
 # Distancia gower
 gower_dist <- daisy(sep_data_factors[1:20], metric = "gower",type = list(logratio = 3))
 dis_datos<-as.matrix(gower_dist)
 
-
-# ¿Se ocupa esto?
-# Elbow con distancia gower
-SSE = rep(0, 15)
-for (k in 1:15) {
-  set.seed(42)
-  grupos = kmeans(dis_datos, k)
-  SSE[k] = grupos$tot.withinss
-}
-plot(SSE)
-
-# ----------------------------------------------------
-# ¿ Se ocupa?
-#asd <- kmeans(dis_datos,4)
+# Gráfico sihouette para ver que k es mejor.
 sil_width <- c(NA)
 for(i in 2:10){
   pam7 <- pam(gower_dist,
-                 diss = TRUE,
-                 k = i)
+              diss = TRUE,
+              k = i)
   sil_width[i] <- pam7$silinfo$avg.width
 }
 
-
-# Gráfico sihouette para ver que k es mejor.
-plot(1:10, sil_width,
-     xlab = "Number of clusters",
-     ylab = "Silhouette Width")
-lines(1:10, sil_width)
-
-#
 data.frame(n_clusters = 1:10, media_silhouette = sil_width) %>%
   ggplot(aes(x = n_clusters, y = media_silhouette)) +
   geom_line() +
@@ -695,22 +566,30 @@ data.frame(n_clusters = 1:10, media_silhouette = sil_width) %>%
        title = "Optimal number of clusters")+
   theme_light()
 
-#--------------------------------------------------------------------------
 
-# PAM 7 cluster
-pam7 <- pam(gower_dist, diss = TRUE, k = 7)
-
-elbow_pam2 <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "wss", k.max = 10, diss = dis_datos)
-
-km_clusters <- eclust(x = datos, FUNcluster = "kmeans", k = 3, seed = 123,
-                      hc_metric = "euclidean", nstart = 50, graph = FALSE)
-fviz_silhouette(sil.obj = km_clusters, print.summary = TRUE, palette = "jco",
-                ggtheme = theme_classic()) 
+# PAM con distancia Gower 
+pam4_gower <- pam(gower_dist, diss = TRUE, k = 4)
+pam7_gower <- pam(gower_dist, diss = TRUE, k = 7)
 
 
-# ================================== Validación ======================================
+#===================================== Análisis del Clúster ====================================#
+# Trabajamos con gower k=4
+
+aggregate(sep_data_normalized[1:20],by=list(pam4_gower$clustering),FUN=mean)
+sep_data_gower <- data.frame(sep_data_normalized, pam4_gower$clustering)
+
+# Data frame con cantidad de clases en cada cluster.
+frequencies_gower <- class_in_cluster_frequency(sep_data_gower)
+
+
+#-------------------------------------------------------------------
+#                      Desnormalizar variables 
 #
-# km_clusters <- eclust(x = datos, FUNcluster = "pam", k = 4, seed = 123,
-#                       hc_metric = "euclidean", nstart = 50, graph = FALSE)
-# fviz_silhouette(sil.obj = km_clusters, print.summary = TRUE, palette = "jco",
-#                 ggtheme = theme_classic()) 
+
+# Data frame con mediodes
+mediodes <- data.frame()
+mediodes <- rbind(Cluster1 = sep_data[pam4_gower$id.med[1],],
+                  Cluster2 = sep_data[pam4_gower$id.med[2],],
+                  Cluster3 = sep_data[pam4_gower$id.med[3],],
+                  Cluster4 = sep_data[pam4_gower$id.med[4],])
+
