@@ -15,7 +15,9 @@ library(FactoMineR)
 
 library(cluster)
 
+library(dplyr)
 
+library(fclust)
 
 cat(" =============================== Laboratorio N°2 Análisis de Datos =============================== \n\n")
 cat(" Desarrolladores: Patricia Melo - Gustavo Hurtado\n\n")
@@ -387,6 +389,7 @@ rows_fti <- NROW(fti)             # = 2505
 
 # Eliminando "?" de T3
 sep_data$T3[sep_data$T3 == "?"] <- NA
+
 sep_data <- sep_data[complete.cases(sep_data),]
 
 # Nuevo total de casos: 2215
@@ -473,6 +476,7 @@ sep_data$FTI[sep_data$FTI > 200] <- median(sep_data$FTI)
 
 
 
+
 #===================================== Reducción de dimensionalidad ====================================#
 
 # Pese a ya haber reducido las variables, se utilizará el método de componentes principales
@@ -481,6 +485,26 @@ sep_data$FTI[sep_data$FTI > 200] <- median(sep_data$FTI)
 # -------------------------------------------------------------------
 #                    Componentes principales 
 #
+
+#Se utilizará para calcular Gower
+sep_data_factors <- sep_data
+sep_data_factors$T3 <- as.numeric(as.character(sep_data_factors$T3))
+
+sep_data_factors$sex <- as.factor(sep_data_factors$sex)
+sep_data_factors$on_thyroxine <- as.factor(sep_data_factors$on_thyroxine)
+sep_data_factors$query_on_thyroxine <- as.factor(sep_data_factors$query_on_thyroxine)
+sep_data_factors$on_antithyroid_medication <- as.factor(sep_data_factors$on_antithyroid_medication)
+sep_data_factors$sick <- as.factor(sep_data_factors$sick)
+sep_data_factors$pregnant <- as.factor(sep_data_factors$pregnant)
+sep_data_factors$thyroid_surgery <- as.factor(sep_data_factors$thyroid_surgery)
+sep_data_factors$I131_treatment <- as.factor(sep_data_factors$I131_treatment)
+sep_data_factors$query_hypothyroid <- as.factor(sep_data_factors$query_hypothyroid)
+sep_data_factors$query_hyperthyroid <- as.factor(sep_data_factors$query_hyperthyroid)
+sep_data_factors$lithium <- as.factor(sep_data_factors$lithium)
+sep_data_factors$goitre <- as.factor(sep_data_factors$goitre)
+sep_data_factors$tumor <- as.factor(sep_data_factors$tumor)
+sep_data_factors$psych <- as.factor(sep_data_factors$psych)
+
 
 # Primero se deben transformar las variables cualitativas a cuantitativas.
 # False = 0     Masculino = 0
@@ -561,8 +585,17 @@ sep_data_normalized <- data.frame(sep_data_normalized,sep_data$class)
 # Primero se obtendrá la cantidad óptima de centroides a utilizar.
 # Método del codo
 fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "wss")
+
+# Codo para PAM
+#fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "wss", k.max = 15,
+#             diss = dist(sep_data_normalized[1:20], method = "manhattan"))
+
 # Método silhouette
 fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "silhouette")+theme_classic()
+
+# Método silhouette PAM
+#fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "silhouette", k.max = 15,
+#             diss = dist(sep_data_normalized[1:20], method = "manhattan"))
 
 # Los valores de k a implementar son 4, 5 y 6, según los métodos anteriores.
 set.seed(123)
@@ -570,11 +603,17 @@ k4_means <- kmeans(sep_data_normalized[1:20], centers = 4, nstart = 50)
 k5_means <- kmeans(sep_data_normalized[1:20], centers = 5, nstart = 50)
 k6_means <- kmeans(sep_data_normalized[1:20], centers = 6, nstart = 50)
 
+#pam_cluster <- pam(x = sep_data_normalized[1:20], k = 4, metric = "manhattan")
+#pam_cluster <- pam(x = sep_data_normalized[1:20], k = 6, metric = "manhattan")
+
 # algo
 aggregate(sep_data_normalized[1:20],by=list(k4_means$cluster),FUN=mean)
+#aggregate(sep_data_normalized[1:20],by=list(pam_cluster$clustering),FUN=mean)
+
 # append cluster assignment
 
 mydata <- data.frame(sep_data_normalized, k4_means$cluster)
+#mydata <- data.frame(mydata, pam_cluster$clustering)
 
 
 #-------------------------------------------------------------------
@@ -586,9 +625,55 @@ mydata <- data.frame(sep_data_normalized, k4_means$cluster)
 k4_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k4_means$centers, 4)))
 k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k6_means$centers, 6)))
 
+# Desnormalizar e invertir data frame.
+#pam_4_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], pam_cluster$medoids, 4)))
+#pam_6_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], pam_cluster$medoids, 6)))
+
 # Desnormalizar mydata
-new_data <- desnormalize_all_dataframe(mydata, sep_data)
-new_data <- data.frame(new_data, mydata[21:22])
+#new_data <- desnormalize_all_dataframe(mydata, sep_data)
+#new_data <- data.frame(new_data, mydata[21:23])
 
 # ------------------------------------------------------------------
+  
 
+gower_dist <- daisy(sep_data_factors[1:20], metric = "gower",type = list(logratio = 3))
+
+dis_datos<-as.matrix(gower_dist)
+
+SSE = rep(0, 15)
+for (k in 1:15) {
+  set.seed(42)
+  grupos = kmeans(dis_datos, k)
+  SSE[k] = grupos$tot.withinss
+}
+
+plot(SSE)
+asd <- kmeans(dis_datos,4)
+
+
+
+sil_width <- c(NA)
+
+for(i in 2:10){
+  
+  pam_fit <- pam(gower_dist,
+                 diss = TRUE,
+                 k = i)
+  
+  sil_width[i] <- pam_fit$silinfo$avg.width
+}
+
+# Plot sihouette width (higher is better)
+
+plot(1:10, sil_width,
+     xlab = "Number of clusters",
+     ylab = "Silhouette Width")
+lines(1:10, sil_width)
+
+pam_fit <- pam(gower_dist,
+               diss = TRUE,
+               k = 4)
+
+fclustIndex(pam_fit, gower_dist, index = "all")
+
+#k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(gower_dist, asd$centers, 6)))
