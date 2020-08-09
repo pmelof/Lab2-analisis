@@ -90,6 +90,18 @@ frecuencias <- function(col, name){
 #-----------------------------------------
 
 
+class_frequency <- function(col, name){
+  frequencies <- data.frame(
+    Negative = NROW(subset(col, col == 'negative')),
+    T3_toxic = NROW(subset(col, col == "T3 toxic")), 
+    Goitre = NROW(subset(col, col == "goitre")), 
+    Hyperthyroid = NROW(subset(col, col == "hyperthyroid"))
+  )
+  rownames(frequencies) <- c(name)
+  return(frequencies)
+}
+
+
 
 # Función que calcula la frecuencia de una columna perteneciente a un data frame.
 # Recibe una columna de un data frame y el nombre de la columna.
@@ -603,18 +615,18 @@ k4_means <- kmeans(sep_data_normalized[1:20], centers = 4, nstart = 50)
 k5_means <- kmeans(sep_data_normalized[1:20], centers = 5, nstart = 50)
 k6_means <- kmeans(sep_data_normalized[1:20], centers = 6, nstart = 50)
 
-#pam_cluster <- pam(x = sep_data_normalized[1:20], k = 4, metric = "manhattan")
+pam_cluster <- pam(x = sep_data_normalized[1:20], k = 4, metric = "manhattan")
 #pam_cluster <- pam(x = sep_data_normalized[1:20], k = 6, metric = "manhattan")
 
 # algo
-aggregate(sep_data_normalized[1:20],by=list(k4_means$cluster),FUN=mean)
-#aggregate(sep_data_normalized[1:20],by=list(pam_cluster$clustering),FUN=mean)
+#aggregate(sep_data_normalized[1:20],by=list(k4_means$cluster),FUN=mean)
+aggregate(sep_data_normalized[1:20],by=list(pam_cluster$clustering),FUN=mean)
 
 # append cluster assignment
 
-mydata <- data.frame(sep_data_normalized, k4_means$cluster)
-#mydata <- data.frame(mydata, pam_cluster$clustering)
-
+#mydata <- data.frame(sep_data_normalized, k4_means$cluster)
+mydata <- data.frame(sep_data_normalized, pam_cluster$clustering)
+stop()
 
 #-------------------------------------------------------------------
 #                      Desnormalizar variables 
