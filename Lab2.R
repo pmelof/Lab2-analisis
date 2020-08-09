@@ -667,7 +667,7 @@ for (k in 1:15) {
 }
 plot(SSE)
 
-
+# ----------------------------------------------------
 # ¿ Se ocupa?
 #asd <- kmeans(dis_datos,4)
 sil_width <- c(NA)
@@ -685,8 +685,32 @@ plot(1:10, sil_width,
      ylab = "Silhouette Width")
 lines(1:10, sil_width)
 
+#
+data.frame(n_clusters = 1:10, media_silhouette = sil_width) %>%
+  ggplot(aes(x = n_clusters, y = media_silhouette)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = 1:10) +
+  labs(y = "Silhouette Width", x = "Number of clusters k",
+       title = "Optimal number of clusters")+
+  theme_light()
+
+#--------------------------------------------------------------------------
 
 # PAM 7 cluster
 pam7 <- pam(gower_dist, diss = TRUE, k = 7)
 
 elbow_pam2 <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "wss", k.max = 10, diss = dis_datos)
+
+km_clusters <- eclust(x = datos, FUNcluster = "kmeans", k = 3, seed = 123,
+                      hc_metric = "euclidean", nstart = 50, graph = FALSE)
+fviz_silhouette(sil.obj = km_clusters, print.summary = TRUE, palette = "jco",
+                ggtheme = theme_classic()) 
+
+
+# ================================== Validación ======================================
+#
+# km_clusters <- eclust(x = datos, FUNcluster = "pam", k = 4, seed = 123,
+#                       hc_metric = "euclidean", nstart = 50, graph = FALSE)
+# fviz_silhouette(sil.obj = km_clusters, print.summary = TRUE, palette = "jco",
+#                 ggtheme = theme_classic()) 
