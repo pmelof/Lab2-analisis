@@ -13,16 +13,16 @@ library(factoextra)
 # Librería PCA
 library(FactoMineR)
 
+# Librería para los cluster
 library(cluster)
+
 
 library(dplyr)
 
-library(fclust)
 
 cat(" =============================== Laboratorio N°2 Análisis de Datos =============================== \n\n")
 cat(" Desarrolladores: Patricia Melo - Gustavo Hurtado\n\n")
 
-#cat(" -------------- Tablas variables discretas --------------\n\n ")
 
 #===================================================== Lectura y manejo de BD =====================================================# 
 
@@ -78,18 +78,9 @@ get_all_measures <- function(data_frame){
 }
 
 
-# ----------------------------------------
-frecuencias <- function(col, name){
-  frequencies <- data.frame(
-    True = NROW(subset(col, col == 1)),
-    False = NROW(subset(col, col == 0))
-  )
-  rownames(frequencies) <- c(name)
-  return(frequencies)
-}
-#-----------------------------------------
-
-
+# Función que calcula las frecuencias de las clases.
+# Recibe la columna que contiene las clases.
+# Retorna un data frame con las frecuencias de las clases.
 class_frequency <- function(col, name){
   frequencies <- data.frame(
     Negative = NROW(subset(col, col == 'negative')),
@@ -101,6 +92,17 @@ class_frequency <- function(col, name){
   return(frequencies)
 }
 
+
+# Función que calcula las fecuencias de clases en los primeros 4 cluster.
+# Recibe un dta frame.
+# Retorna un data frame con las fecuencias de las clases en los primeros 4 cluster.
+class_in_cluster_frequency <- function(data){
+  frecuencies <- rbind(class_frequency(filter(data[21], data[22]==1), "1"))
+  frecuencies <- rbind(frecuencies, class_frequency(filter(data[21], data[22]==2), "2"))
+  frecuencies <- rbind(frecuencies, class_frequency(filter(data[21], data[22]==3), "3"))
+  frecuencies <- rbind(frecuencies, class_frequency(filter(data[21], data[22]==4), "4"))
+  return(frecuencies)
+}
 
 
 # Función que calcula la frecuencia de una columna perteneciente a un data frame.
@@ -216,6 +218,9 @@ desnormalize_all_centers <- function(data, centers, k){
 }
 
 
+# Función que genera un dataframe con todos los valores desnormalizados de un data frame.
+# Recibe un data frame y los datos originales.
+# Entrega un data frame con los valores desnormalizados de todo el data frame.
 desnormalize_all_dataframe <- function(mydata,data){
   data_final <- cbind(desnormalization(mydata$age, min(data$age), max(data$age), "age"))
   data_final <- cbind(data_final, desnormalization(mydata$sex, min(data$sex), max(data$sex), "sex"))
@@ -487,17 +492,6 @@ sep_data$TT4[sep_data$TT4 > 220] <- median(sep_data$TT4)
 sep_data$FTI[sep_data$FTI > 200] <- median(sep_data$FTI)
 
 
-
-
-#===================================== Reducción de dimensionalidad ====================================#
-
-# Pese a ya haber reducido las variables, se utilizará el método de componentes principales
-# para ver si se puede reducir aún más.
-
-# -------------------------------------------------------------------
-#                    Componentes principales 
-#
-
 #Se utilizará para calcular Gower
 sep_data_factors <- sep_data
 sep_data_factors$T3 <- as.numeric(as.character(sep_data_factors$T3))
@@ -517,6 +511,11 @@ sep_data_factors$goitre <- as.factor(sep_data_factors$goitre)
 sep_data_factors$tumor <- as.factor(sep_data_factors$tumor)
 sep_data_factors$psych <- as.factor(sep_data_factors$psych)
 
+
+#===================================== Componentes principales ====================================#
+
+# Pese a ya haber reducido las variables, se utilizará el método de componentes principales
+# para ver si se puede reducir aún más.
 
 # Primero se deben transformar las variables cualitativas a cuantitativas.
 # False = 0     Masculino = 0
@@ -596,37 +595,43 @@ sep_data_normalized <- data.frame(sep_data_normalized,sep_data$class)
 
 # Primero se obtendrá la cantidad óptima de centroides a utilizar.
 # Método del codo
-fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "wss")
+#fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "wss")
 
-# Codo para PAM
-#fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "wss", k.max = 15,
-#             diss = dist(sep_data_normalized[1:20], method = "manhattan"))
+# Método codo para PAM
+# elbow_pam <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "wss", k.max = 15,
+#              diss = dist(sep_data_normalized[1:20], method = "manhattan"))
 
 # Método silhouette
-fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "silhouette")+theme_classic()
+#fviz_nbclust(sep_data_normalized[1:20], kmeans, method = "silhouette")+theme_classic()
 
 # Método silhouette PAM
-#fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "silhouette", k.max = 15,
-#             diss = dist(sep_data_normalized[1:20], method = "manhattan"))
+# silhouette_pam <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "silhouette", k.max = 15,
+#              diss = dist(sep_data_normalized[1:20], method = "manhattan"))
+
 
 # Los valores de k a implementar son 4, 5 y 6, según los métodos anteriores.
 set.seed(123)
 k4_means <- kmeans(sep_data_normalized[1:20], centers = 4, nstart = 50)
-k5_means <- kmeans(sep_data_normalized[1:20], centers = 5, nstart = 50)
-k6_means <- kmeans(sep_data_normalized[1:20], centers = 6, nstart = 50)
+#k5_means <- kmeans(sep_data_normalized[1:20], centers = 5, nstart = 50)
+#k6_means <- kmeans(sep_data_normalized[1:20], centers = 6, nstart = 50)
 
-pam_cluster <- pam(x = sep_data_normalized[1:20], k = 4, metric = "manhattan")
+pam4_cluster <- pam(x = sep_data_normalized[1:20], k = 4, metric = "manhattan")
 #pam_cluster <- pam(x = sep_data_normalized[1:20], k = 6, metric = "manhattan")
 
 # algo
 #aggregate(sep_data_normalized[1:20],by=list(k4_means$cluster),FUN=mean)
-aggregate(sep_data_normalized[1:20],by=list(pam_cluster$clustering),FUN=mean)
+aggregate(sep_data_normalized[1:20],by=list(pam4_cluster$clustering),FUN=mean)
 
 # append cluster assignment
 
 #mydata <- data.frame(sep_data_normalized, k4_means$cluster)
-mydata <- data.frame(sep_data_normalized, pam_cluster$clustering)
-stop()
+data_final_4k <- data.frame(sep_data_normalized, pam4_cluster$clustering)
+
+
+frequcies_4cluster <- class_in_cluster_frequency(data_final_4k)
+
+
+# Falta hacer el de 7, quieres igual los datos para anlaizar o est trabajo que despué no se ocupará?
 
 #-------------------------------------------------------------------
 #                      Desnormalizar variables 
@@ -634,8 +639,8 @@ stop()
 # Para el clúster con k=4
   
 # Desnormalizar e invertir data frame.
-k4_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k4_means$centers, 4)))
-k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k6_means$centers, 6)))
+# k4_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k4_means$centers, 4)))
+# k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], k6_means$centers, 6)))
 
 # Desnormalizar e invertir data frame.
 #pam_4_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], pam_cluster$medoids, 4)))
@@ -647,45 +652,41 @@ k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(sep_data[1:20], 
 
 # ------------------------------------------------------------------
   
-
+# Distancia gower
 gower_dist <- daisy(sep_data_factors[1:20], metric = "gower",type = list(logratio = 3))
-
 dis_datos<-as.matrix(gower_dist)
 
+
+# ¿Se ocupa esto?
+# Elbow con distancia gower
 SSE = rep(0, 15)
 for (k in 1:15) {
   set.seed(42)
   grupos = kmeans(dis_datos, k)
   SSE[k] = grupos$tot.withinss
 }
-
 plot(SSE)
-asd <- kmeans(dis_datos,4)
 
 
-
+# ¿ Se ocupa?
+#asd <- kmeans(dis_datos,4)
 sil_width <- c(NA)
-
 for(i in 2:10){
-  
-  pam_fit <- pam(gower_dist,
+  pam7 <- pam(gower_dist,
                  diss = TRUE,
                  k = i)
-  
-  sil_width[i] <- pam_fit$silinfo$avg.width
+  sil_width[i] <- pam7$silinfo$avg.width
 }
 
-# Plot sihouette width (higher is better)
 
+# Gráfico sihouette para ver que k es mejor.
 plot(1:10, sil_width,
      xlab = "Number of clusters",
      ylab = "Silhouette Width")
 lines(1:10, sil_width)
 
-pam_fit <- pam(gower_dist,
-               diss = TRUE,
-               k = 4)
 
-fclustIndex(pam_fit, gower_dist, index = "all")
+# PAM 7 cluster
+pam7 <- pam(gower_dist, diss = TRUE, k = 7)
 
-#k6_means_desnormalized <- data.frame(t(desnormalize_all_centers(gower_dist, asd$centers, 6)))
+elbow_pam2 <- fviz_nbclust(x = sep_data_normalized[1:20],FUNcluster = pam, method = "wss", k.max = 10, diss = dis_datos)
